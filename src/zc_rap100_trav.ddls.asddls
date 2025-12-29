@@ -9,7 +9,9 @@
 define root view entity ZC_RAP100_TRAV
   provider contract transactional_query
   as projection on ZR_RAP100_TRAV
+  association [1..1] to ZR_RAP100_TRAV as _BaseEntity on $projection.TravelID = _BaseEntity.TravelID
 {
+
       @Search.defaultSearchElement: true
       @Search.fuzzinessThreshold: 0.90
   key TravelID,
@@ -49,5 +51,7 @@ define root view entity ZC_RAP100_TRAV
       Attachment,
       MimeType,
       FileName,
-      LocalLastChangedAt
+      LocalLastChangedAt,
+
+      _BaseEntity
 }

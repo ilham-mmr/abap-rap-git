@@ -1,6 +1,6 @@
 @EndUserText.label: 'ZC_RAP100_TRAV'
 @MappingRole: true
 define role ZC_RAP100_TRAV {
-  grant select on ZC_RAP100_TRAV
+  grant select on ZC_RAP100_TRAV 
   where INHERITING CONDITIONS FROM ENTITY ZR_RAP100_TRAV REPLACING { ROOT WITH _BaseEntity };
 }
