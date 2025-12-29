@@ -1,212 +1,79 @@
-@Metadata.layer: #CORE
-@UI.headerInfo.title.type: #STANDARD
-@UI.headerInfo.title.value: 'TravelID'
-@UI.headerInfo.description.type: #STANDARD
-@UI.headerInfo.description.value: 'TravelID'
+@Metadata.layer: #CUSTOMER
+@UI: {
+  headerInfo: {
+    typeName: 'Travel',
+    typeNamePlural: 'Travels',
+    imageUrl: 'Attachment',  //case-sensitive 
+    description: { type: #STANDARD, value: 'TravelID' } //case-sensitive
+  }
+}
 annotate view ZC_RAP100_TRAV with
 {
   @UI.facet: [ {
-    label: 'General Information', 
-    id: 'GeneralInfo', 
-    purpose: #STANDARD, 
-    position: 10 , 
-    type: #IDENTIFICATION_REFERENCE
+    id: 'idIdentification',
+    type: #IDENTIFICATION_REFERENCE,
+    label: 'Travel',
+    position: 10
   } ]
-  @UI.identification: [ {
-    position: 10 
-  } ]
-  @UI.lineItem: [ {
-    position: 10 
-  } ]
-  @UI.selectionField: [ {
-    position: 10 
-  } ]
+  
+  @UI: {
+        lineItem:       [ { position: 10, importance: #HIGH } ],
+        identification: [ { position: 10 } ],
+        selectionField: [ { position: 10 } ]
+  }       
   TravelID;
-  
-  @UI.identification: [ {
-    position: 20 
-  } ]
-  @UI.lineItem: [ {
-    position: 20 
-  } ]
-  @UI.selectionField: [ {
-    position: 20 
-  } ]
+
+  @UI: {
+        lineItem:       [ { position: 20, importance: #HIGH } ],
+        identification: [ { position: 20 } ],
+        selectionField: [ { position: 20 } ]
+  }       
   AgencyID;
-  
-  @UI.identification: [ {
-    position: 30 
-  } ]
-  @UI.lineItem: [ {
-    position: 30 
-  } ]
-  @UI.selectionField: [ {
-    position: 30 
-  } ]
+
+  @UI: {
+        lineItem:       [ { position: 30, importance: #HIGH } ],
+        identification: [ { position: 30 } ],
+        selectionField: [ { position: 30 } ]
+  }      
   CustomerID;
-  
-  @UI.identification: [ {
-    position: 40 
-  } ]
-  @UI.lineItem: [ {
-    position: 40 
-  } ]
-  @UI.selectionField: [ {
-    position: 40 
-  } ]
+
+  @UI: {
+        lineItem:       [ { position: 40, importance: #MEDIUM } ],
+        identification: [ { position: 40 } ]
+  }      
   BeginDate;
-  
-  @UI.identification: [ {
-    position: 50 
-  } ]
-  @UI.lineItem: [ {
-    position: 50 
-  } ]
-  @UI.selectionField: [ {
-    position: 50 
-  } ]
+
+  @UI: {
+        lineItem:       [ { position: 50, importance: #MEDIUM } ],
+        identification: [ { position: 50 } ]
+  }    
   EndDate;
-  
-  @UI.identification: [ {
-    position: 60 
-  } ]
-  @UI.lineItem: [ {
-    position: 60 
-  } ]
-  @UI.selectionField: [ {
-    position: 60 
-  } ]
+
+  @UI.identification: [ { position: 60 } ]
   BookingFee;
-  
-  @UI.identification: [ {
-    position: 70 
-  } ]
-  @UI.lineItem: [ {
-    position: 70 
-  } ]
-  @UI.selectionField: [ {
-    position: 70 
-  } ]
+
+  @UI.identification: [ { position: 70 } ]
   TotalPrice;
-  
-  @UI.identification: [ {
-    position: 80 
-  } ]
-  @UI.lineItem: [ {
-    position: 80 
-  } ]
-  @UI.selectionField: [ {
-    position: 80 
-  } ]
+
+  @UI.identification: [ { position: 90 } ]
   Description;
-  
-  @UI.identification: [ {
-    position: 90 
-  } ]
-  @UI.lineItem: [ {
-    position: 90 
-  } ]
-  @UI.selectionField: [ {
-    position: 90 
-  } ]
+
+  @UI: {
+        lineItem:       [ { position: 100, importance: #HIGH } ],
+        identification: [ { position: 100 } ],
+        textArrangement: #TEXT_ONLY
+  }  
   OverallStatus;
-  
-  @UI.identification: [ {
-    position: 100 
-  } ]
-  @UI.lineItem: [ {
-    position: 100 
-  } ]
+
+  @UI.identification: [ { position: 110 } ]
   Attachment;
-  
-  @UI.identification: [ {
-    position: 110 
-  } ]
-  @UI.lineItem: [ {
-    position: 110 
-  } ]
-  @UI.selectionField: [ {
-    position: 110 
-  } ]
+
+  @UI.hidden: true
   MimeType;
-  
-  @UI.identification: [ {
-    position: 120 
-  } ]
-  @UI.lineItem: [ {
-    position: 120 
-  } ]
-  @UI.selectionField: [ {
-    position: 120 
-  } ]
+
+  @UI.hidden: true
   FileName;
-  
-  @UI.identification: [ {
-    position: 130 
-  } ]
-  @UI.lineItem: [ {
-    position: 130 
-  } ]
-  @UI.selectionField: [ {
-    position: 130 
-  } ]
-  CreatedBy;
-  
-  @UI.identification: [ {
-    position: 140 
-  } ]
-  @UI.lineItem: [ {
-    position: 140 
-  } ]
-  @UI.selectionField: [ {
-    position: 140 
-  } ]
-  CreatedAt;
-  
-  @UI.identification: [ {
-    position: 150 
-  } ]
-  @UI.lineItem: [ {
-    position: 150 
-  } ]
-  @UI.selectionField: [ {
-    position: 150 
-  } ]
-  LocalLastChangedBy;
-  
-  @UI.identification: [ {
-    position: 160 
-  } ]
-  @UI.lineItem: [ {
-    position: 160 
-  } ]
-  @UI.selectionField: [ {
-    position: 160 
-  } ]
+
+  @UI.hidden: true
   LocalLastChangedAt;
-  
-  @UI.identification: [ {
-    position: 170 
-  } ]
-  @UI.lineItem: [ {
-    position: 170 
-  } ]
-  @UI.selectionField: [ {
-    position: 170 
-  } ]
-  LastChangedAt;
-  
-  @EndUserText.label: '_BaseEntity'
-  @UI.identification: [ {
-    position: 180 , 
-    label: '_BaseEntity'
-  } ]
-  @UI.lineItem: [ {
-    position: 180 , 
-    label: '_BaseEntity'
-  } ]
-  @UI.selectionField: [ {
-    position: 180 
-  } ]
-  _BaseEntity;
 }
