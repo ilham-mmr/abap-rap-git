@@ -36,6 +36,15 @@ early numbering
   validation validateCustomer on save { create; field CustomerID; }
   validation validateDates on save { create; field BeginDate, EndDate; }
 
+  // action deductDiscount result [1] $self;
+  action deductDiscount parameter /dmo/a_travel_discount result [1] $self;
+
+  factory action copyTravel [1];
+
+  action acceptTravel result [1] $self;
+  action rejectTravel result [1] $self;
+
+
   draft action Activate optimized;
   draft action Discard;
   draft action Edit;

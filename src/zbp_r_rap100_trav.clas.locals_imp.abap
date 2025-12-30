@@ -19,6 +19,15 @@ CLASS lhc_zr_rap100_trav DEFINITION INHERITING FROM cl_abap_behavior_handler.
 
     METHODS validateDates FOR VALIDATE ON SAVE
       IMPORTING keys FOR ZrRap100Trav~validateDates.
+    METHODS deductDiscount FOR MODIFY
+      IMPORTING keys FOR ACTION ZrRap100Trav~deductDiscount RESULT result.
+    METHODS copyTravel FOR MODIFY
+      IMPORTING keys FOR ACTION ZrRap100Trav~copyTravel.
+    METHODS acceptTravel FOR MODIFY
+      IMPORTING keys FOR ACTION ZrRap100Trav~acceptTravel RESULT result.
+
+    METHODS rejectTravel FOR MODIFY
+      IMPORTING keys FOR ACTION ZrRap100Trav~rejectTravel RESULT result.
 ENDCLASS.
 
 CLASS lhc_zr_rap100_trav IMPLEMENTATION.
@@ -245,5 +254,171 @@ CLASS lhc_zr_rap100_trav IMPLEMENTATION.
 
   ENDMETHOD.
 
+
+**************************************************************************
+* Instance-bound non-factory action with parameter `deductDiscount`:
+* Deduct the specified discount from the booking fee (BookingFee)
+**************************************************************************
+  METHOD deductDiscount.
+    DATA travels_for_update TYPE TABLE FOR UPDATE zr_rap100_trav.
+    DATA(keys_with_valid_discount) = keys.
+
+    " check and handle invalid discount values
+    LOOP AT keys_with_valid_discount ASSIGNING FIELD-SYMBOL(<key_with_valid_discount>)
+      WHERE %param-discount_percent IS INITIAL OR %param-discount_percent > 100 OR %param-discount_percent <= 0.
+
+      " report invalid discount value appropriately
+      APPEND VALUE #( %tky                       = <key_with_valid_discount>-%tky ) TO failed-zrrap100trav.
+
+      APPEND VALUE #( %tky                       = <key_with_valid_discount>-%tky
+                      %msg                       = NEW /dmo/cm_flight_messages(
+                                                        textid = /dmo/cm_flight_messages=>discount_invalid
+                                                        severity = if_abap_behv_message=>severity-error )
+                      %element-TotalPrice        = if_abap_behv=>mk-on
+                      %op-%action-deductDiscount = if_abap_behv=>mk-on
+                    ) TO reported-zrrap100trav.
+
+      " remove invalid discount value
+      DELETE keys_with_valid_discount.
+    ENDLOOP.
+
+    " check and go ahead with valid discount values
+    CHECK keys_with_valid_discount IS NOT INITIAL.
+
+    " read relevant travel instance data (only booking fee)
+    READ ENTITIES OF zr_rap100_trav IN LOCAL MODE
+      ENTITY ZrRap100Trav
+        FIELDS ( BookingFee )
+        WITH CORRESPONDING #( keys_with_valid_discount )
+      RESULT DATA(travels).
+
+    LOOP AT travels ASSIGNING FIELD-SYMBOL(<travel>).
+      DATA percentage TYPE decfloat16.
+      DATA(discount_percent) = keys_with_valid_discount[ KEY draft %tky = <travel>-%tky ]-%param-discount_percent.
+      percentage =  discount_percent / 100 .
+      DATA(reduced_fee) = <travel>-BookingFee * ( 1 - percentage ) .
+
+      APPEND VALUE #( %tky       = <travel>-%tky
+                      BookingFee = reduced_fee
+                    ) TO travels_for_update.
+    ENDLOOP.
+
+    " update data with reduced fee
+    MODIFY ENTITIES OF zr_rap100_trav IN LOCAL MODE
+      ENTITY ZrRap100Trav
+        UPDATE FIELDS ( BookingFee )
+        WITH travels_for_update.
+
+    " read changed data for action result
+    READ ENTITIES OF zr_rap100_trav IN LOCAL MODE
+      ENTITY ZrRap100Trav
+        ALL FIELDS WITH
+        CORRESPONDING #( travels )
+      RESULT DATA(travels_with_discount).
+
+    " set action result
+    result = VALUE #( FOR travel IN travels_with_discount ( %tky   = travel-%tky
+                                                            %param = travel ) ).
+  ENDMETHOD.
+
+
+
+**************************************************************************
+* Instance-bound factory action `copyTravel`:
+* Copy an existing travel instance
+**************************************************************************
+  METHOD copyTravel.
+    DATA:
+       travels       TYPE TABLE FOR CREATE zr_rap100_trav.
+
+    " remove travel instances with initial %cid (i.e., not set by caller API)
+    READ TABLE keys WITH KEY %cid = '' INTO DATA(key_with_inital_cid).
+    ASSERT key_with_inital_cid IS INITIAL.
+
+    " read the data from the travel instances to be copied
+    READ ENTITIES OF zr_rap100_trav IN LOCAL MODE
+       ENTITY ZrRap100Trav
+       ALL FIELDS WITH CORRESPONDING #( keys )
+    RESULT DATA(travel_read_result)
+    FAILED failed.
+
+    LOOP AT travel_read_result ASSIGNING FIELD-SYMBOL(<travel>).
+      " fill in travel container for creating new travel instance
+      APPEND VALUE #( %cid      = keys[ KEY entity %key = <travel>-%key ]-%cid
+                     %is_draft = keys[ KEY entity %key = <travel>-%key ]-%param-%is_draft
+                     %data     = CORRESPONDING #( <travel> EXCEPT TravelID )
+                  )
+      TO travels ASSIGNING FIELD-SYMBOL(<new_travel>).
+
+      " adjust the copied travel instance data
+      "" BeginDate must be on or after system date
+      <new_travel>-BeginDate     = cl_abap_context_info=>get_system_date( ).
+      "" EndDate must be after BeginDate
+      <new_travel>-EndDate       = cl_abap_context_info=>get_system_date( ) + 30.
+      "" OverallStatus of new instances must be set to open ('O')
+      <new_travel>-OverallStatus = travel_status-open.
+    ENDLOOP.
+
+    " create new BO instance
+    MODIFY ENTITIES OF  zr_rap100_trav IN LOCAL MODE
+       ENTITY ZrRap100Trav
+       CREATE FIELDS ( AgencyID CustomerID BeginDate EndDate BookingFee
+                         TotalPrice CurrencyCode OverallStatus Description )
+          WITH travels
+       MAPPED DATA(mapped_create).
+
+    " set the new BO instances
+    mapped-zrrap100trav   =  mapped_create-zrrap100trav .
+  ENDMETHOD.
+
+*************************************************************************************
+* Instance-bound non-factory action: Set the overall travel status to 'A' (accepted)
+*************************************************************************************
+  METHOD acceptTravel.
+    " modify travel instance
+    MODIFY ENTITIES OF zr_rap100_trav IN LOCAL MODE
+       ENTITY ZrRap100Trav
+       UPDATE FIELDS ( OverallStatus )
+       WITH VALUE #( FOR key IN keys ( %tky          = key-%tky
+                                        OverallStatus = travel_status-accepted ) )  " 'A'
+    FAILED failed
+    REPORTED reported.
+
+    " read changed data for action result
+    READ ENTITIES OF zr_rap100_trav IN LOCAL MODE
+       ENTITY ZrRap100Trav
+       ALL FIELDS WITH
+       CORRESPONDING #( keys )
+       RESULT DATA(travels).
+
+    " set the action result parameter
+    result = VALUE #( FOR travel IN travels ( %tky   = travel-%tky
+                                             %param = travel ) ).
+  ENDMETHOD.
+
+*************************************************************************************
+* Instance-bound non-factory action: Set the overall travel status to 'X' (rejected)
+*************************************************************************************
+  METHOD rejectTravel.
+   " modify travel instance
+    MODIFY ENTITIES OF zr_rap100_trav IN LOCAL MODE
+       ENTITY ZrRap100Trav
+       UPDATE FIELDS ( OverallStatus )
+       WITH VALUE #( FOR key IN keys ( %tky          = key-%tky
+                                        OverallStatus = travel_status-rejected ) )  " 'X'
+    FAILED failed
+    REPORTED reported.
+
+    " read changed data for action result
+    READ ENTITIES OF zr_rap100_trav IN LOCAL MODE
+       ENTITY ZrRap100Trav
+       ALL FIELDS WITH
+       CORRESPONDING #( keys )
+       RESULT DATA(travels).
+
+    " set the action result parameter
+    result = VALUE #( FOR travel IN travels ( %tky   = travel-%tky
+                                             %param = travel ) ).
+  ENDMETHOD.
 
 ENDCLASS.

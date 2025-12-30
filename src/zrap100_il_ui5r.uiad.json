@@ -1,0 +1,34 @@
+{
+  "formatVersion": "2",
+  "header": {
+    "description": "An SAP Fiori application.",
+    "originalLanguage": "en",
+    "abapLanguageVersion": "cloudDevelopment"
+  },
+  "generalInformation": {
+    "appType": "ui5",
+    "catalogId": "SAP_TC_UI5_REPO_UIAD",
+    "targetMappingTitle": "Travel App 100"
+  },
+  "ui5AppDetails": {
+    "appId": "zrap100il"
+  },
+  "navigation": {
+    "targetMappingId": "UI5R_D42458627D703ABC547B88E13F21CDC1292294EE_TM",
+    "semanticObject": "zrap_100_il",
+    "action": "display",
+    "desktop": true,
+    "tablet": true,
+    "phone": true
+  },
+  "tiles": [
+    {
+      "id": "UI5R_D42458627D703ABC547B88E13F21CDC1292294EE_AL",
+      "tileType": "static",
+      "isDefault": true,
+      "standard": {
+        "title": "Travel App 100"
+      }
+    }
+  ]
+}
